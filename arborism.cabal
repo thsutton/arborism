@@ -24,6 +24,7 @@ library
   exposed-modules:     Data.Arborism
   build-depends:       base >= 4.7 && < 5
                      , vector
+                     , containers
 
 executable arborism
   hs-source-dirs:      src
