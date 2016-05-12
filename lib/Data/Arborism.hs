@@ -1,10 +1,11 @@
 module Data.Arborism where
 
+import           Control.Arrow (first, second)
 import           Data.Monoid
-import           Data.Set    (Set)
-import qualified Data.Set    as Set
-import           Data.Vector (Vector)
-import qualified Data.Vector as V
+import           Data.Set      (Set)
+import qualified Data.Set      as Set
+import           Data.Vector   (Vector)
+import qualified Data.Vector   as V
 
 -- | A 'Tree' is a node labelled with an element of 'sigma'.
 data Tree sigma = Node
@@ -12,6 +13,10 @@ data Tree sigma = Node
   , treeBranches :: Forest sigma
   }
   deriving (Ord, Eq)
+
+-- | Split a 'Tree' into it's root label and a 'Forest' of branches.
+splitTree :: Tree sigma -> (sigma, Forest sigma)
+splitTree (Node l b) = (l, b)
 
 -- | A 'Forest' is an ordered collection of 'Tree's.
 newtype Forest sigma = Forest
@@ -30,6 +35,7 @@ empty (Forest trees) = V.null trees
 degree :: Tree sigma -> Int
 degree = V.length . forestTrees . treeBranches
 
+-- | Get the left-most 'Tree' in a 'Forest'.
 leftMost :: Forest sigma -> Maybe (Tree sigma, Forest sigma)
 leftMost (Forest f)
     | V.null f = Nothing
@@ -38,6 +44,7 @@ leftMost (Forest f)
             t = V.tail f
         in Just (l, Forest t)
 
+-- | Get the right-most 'Tree' in a 'Forest'.
 rightMost :: Forest sigma -> Maybe (Forest sigma, Tree sigma)
 rightMost (Forest f)
     | V.null f = Nothing
@@ -50,13 +57,13 @@ rightMost (Forest f)
 --
 -- Returns the left-most tree's root label and branches, and the right trees.
 leftRoot :: Forest sigma -> Maybe ((sigma, Forest sigma), Forest sigma)
-leftRoot f = (\(l,t) -> ((treeLabel l, treeBranches l), t)) <$> leftMost f
+leftRoot f = (first splitTree) <$> leftMost f
 
 -- | Decompose a forest at the root of the right-most tree.
 --
 -- Returns the left trees, right-most tree's root label and branches.
 rightRoot :: Forest sigma -> Maybe (Forest sigma, (sigma, Forest sigma))
-rightRoot f = (\(t,r) -> (t, (treeLabel r, treeBranches r))) <$> rightMost f
+rightRoot f = (second splitTree) <$> rightMost f
 
 -- * Decomposition strategy
 
