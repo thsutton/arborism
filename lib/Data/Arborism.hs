@@ -2,6 +2,7 @@ module Data.Arborism where
 
 import           Data.Monoid
 import           Data.Set    (Set)
+import qualified Data.Set    as Set
 import           Data.Vector (Vector)
 import qualified Data.Vector as V
 
@@ -91,13 +92,38 @@ relevant
   -> Forest sigma
   -> Forest sigma
   -> Set (Forest sigma, Forest sigma)
-relevant phi f f'
-  -- if F and F' are empty forests, then RF(phi)(F, F') = \null
-  | empty f && empty f' = mempty
-  -- if phi(F, F')=left, F=l(G)<>T and F' is empty, then RF{phi}(F,F') is
-  -- (f, f') `Set.insert` relevant phi (g <> t) f'
-  | phi f f' == L && empty f' = mempty
-  -- if phi(F, F')=right, F=T<>l(G) and F' is empty, then RF{phi}(F,F') is
-  -- (f,f') `Set.insert` relevant phi (t<>g) f'
-  | phi f f' == R && empty f' = mempty
-
+relevant strategy f f'
+    -- Both forests are empty.
+    | empty f && empty f' = mempty
+    | otherwise =
+      case strategy f f' of
+        -- f' is empty.
+        L | empty f' ->
+            case leftRoot f of
+              Nothing -> error "This is not possible"
+              Just ((l, g), t) -> (f, f') `Set.insert` go (g <> t) f'
+        R | empty f' ->
+            case rightRoot f of
+              Nothing -> error ""
+              Just (t, (_, g)) -> (f, f') `Set.insert` go (t <> g) f'
+        -- f is empty.
+        L | empty f ->
+            case leftRoot f' of
+              Nothing -> error "This is not possible"
+              Just ((_, g'), t') -> (f, f') `Set.insert` go f (g' <> t')
+        R | empty f ->
+            case rightRoot f' of
+              Nothing -> error "This is not possible"
+              Just (t', (_, g')) -> (f, f') `Set.insert` relevant strategy f (t' <> g')
+        -- f and f' are non-empty.
+        L -> case (leftRoot f, leftRoot f') of
+          (Just ((l, g), t), Just ((l', g'), t')) ->
+            (f, f') `Set.insert` (go (g <> t) f' <> go f (g'<>t') <> go (forest l g) (forest l' g') <> go t t')
+          _ -> error "This is not possible"
+        R -> case (rightRoot f, rightRoot f') of
+          (Just (t, (l, g)), Just (t', (l', g'))) ->
+            (f,f') `Set.insert` go (t<>g) f' <> go f (t'<>g') <> go (forest l g) (forest l' g') <> go t t'
+  where
+    go = relevant strategy
+    forest :: sigma -> Forest sigma -> Forest sigma
+    forest l g = Forest (V.singleton (Node l g))
