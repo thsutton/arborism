@@ -1,6 +1,7 @@
 module Data.Arborism where
 
 import           Control.Arrow (first, second)
+import           Data.Functor
 import           Data.Monoid
 import           Data.Set      (Set)
 import qualified Data.Set      as Set
