@@ -1,70 +1,14 @@
 module Data.Arborism where
 
-import           Control.Arrow (first, second)
 import           Data.Functor
 import           Data.Monoid
-import           Data.Set      (Set)
-import qualified Data.Set      as Set
-import           Data.Vector   (Vector)
-import qualified Data.Vector   as V
+import           Data.Set     (Set)
+import qualified Data.Set     as Set
+import           Data.Vector  (Vector)
+import qualified Data.Vector  as V
 
--- | A 'Tree' is a node labelled with an element of 'sigma'.
-data Tree sigma = Node
-  { treeLabel    :: sigma
-  , treeBranches :: Forest sigma
-  }
-  deriving (Ord, Eq)
+import Data.Tree
 
--- | Split a 'Tree' into it's root label and a 'Forest' of branches.
-splitTree :: Tree sigma -> (sigma, Forest sigma)
-splitTree (Node l b) = (l, b)
-
--- | A 'Forest' is an ordered collection of 'Tree's.
-newtype Forest sigma = Forest
-  { forestTrees :: Vector (Tree sigma)
-  }
-  deriving (Ord, Eq)
-
-instance Monoid (Forest sigma) where
-  mempty = Forest mempty
-  (Forest t1) `mappend` (Forest t2) = Forest (t1 `mappend` t2)
-
-empty :: Forest sigma -> Bool
-empty (Forest trees) = V.null trees
-
--- | The number of children a tree has.
-degree :: Tree sigma -> Int
-degree = V.length . forestTrees . treeBranches
-
--- | Get the left-most 'Tree' in a 'Forest'.
-leftMost :: Forest sigma -> Maybe (Tree sigma, Forest sigma)
-leftMost (Forest f)
-    | V.null f = Nothing
-    | otherwise =
-        let l = V.head f
-            t = V.tail f
-        in Just (l, Forest t)
-
--- | Get the right-most 'Tree' in a 'Forest'.
-rightMost :: Forest sigma -> Maybe (Forest sigma, Tree sigma)
-rightMost (Forest f)
-    | V.null f = Nothing
-    | otherwise =
-        let r = V.last f
-            t = V.init f
-        in Just (Forest t, r)
-
--- | Decompose a forest at the root of the left-most tree.
---
--- Returns the left-most tree's root label and branches, and the right trees.
-leftRoot :: Forest sigma -> Maybe ((sigma, Forest sigma), Forest sigma)
-leftRoot f = (first splitTree) <$> leftMost f
-
--- | Decompose a forest at the root of the right-most tree.
---
--- Returns the left trees, right-most tree's root label and branches.
-rightRoot :: Forest sigma -> Maybe (Forest sigma, (sigma, Forest sigma))
-rightRoot f = (second splitTree) <$> rightMost f
 
 -- * Decomposition strategy
 
