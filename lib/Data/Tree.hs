@@ -30,8 +30,7 @@ deriving instance (Show sigma) => Show (Tree sigma)
 
 -- | A 'Forest' is an ordered collection of 'Tree's.
 newtype Forest sigma = Forest
-  { forestTrees :: Vector (Tree sigma)
-  }
+  { forestTrees :: Vector (Tree sigma) }
   deriving (Ord, Eq)
 
 deriving instance (Show sigma) => Show (Forest sigma)
@@ -45,6 +44,9 @@ instance Monoid (Forest sigma) where
 -- | Construct a one-node 'Tree'.
 singleton :: sigma -> Tree sigma
 singleton l = Node l mempty
+
+singletonForest :: Tree l -> Forest l
+singletonForest t = Forest (V.singleton t)
 
 -- | Graft a 'Tree' into a 'Forest' on the left.
 --
@@ -66,7 +68,7 @@ empty (Forest trees) = V.null trees
 
 -- | The number of children a tree has.
 degree :: Tree sigma -> Int
-degree = V.length . forestTrees . treeBranches
+degree (Node _ (Forest branches)) = V.length branches
 
 -- | The number of nodes in a 'Tree'.
 treeNodes :: Tree sigma -> Int
@@ -84,7 +86,6 @@ forestNodes (Forest ts) = V.foldl (\c t -> c + treeNodes t) 0 ts
 -- prop> \(l :: Int) f -> splitTree (Node l f) == (l, f)
 splitTree :: Tree sigma -> (sigma, Forest sigma)
 splitTree (Node l b) = (l, b)
-
 
 -- | Get the left-most 'Tree' in a 'Forest'.
 leftMost :: Forest sigma -> Maybe (Tree sigma, Forest sigma)
