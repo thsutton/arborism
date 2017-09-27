@@ -41,7 +41,8 @@ newtype Forest sigma = Forest
   { forestTrees :: Vector (Tree sigma) }
   deriving (Ord, Eq)
 
-deriving instance (Show sigma) => Show (Forest sigma)
+instance Show l => Show (Forest l) where
+  show (Forest children) = "(" <> (intercalate " " . map show . V.toList $ children) <> ")"
 
 instance Monoid (Forest sigma) where
   mempty = Forest mempty
@@ -52,6 +53,9 @@ instance Monoid (Forest sigma) where
 -- | Construct a one-node 'Tree'.
 singleton :: sigma -> Tree sigma
 singleton l = Node l mempty
+
+forest :: [Tree l] -> Forest l
+forest l = Forest (V.fromList l)
 
 singletonForest :: Tree l -> Forest l
 singletonForest t = Forest (V.singleton t)
@@ -89,10 +93,20 @@ forestNodes (Forest ts) = V.foldl (\c t -> c + treeNodes t) 0 ts
 -- * Destruction
 
 uncons :: Forest l -> Maybe (l, Forest l, Forest l)
-uncons _ = Nothing
+uncons (Forest v)
+  | V.null v = Nothing
+  | otherwise =
+    let (Node l g) = V.head v
+        t = Forest $ V.tail v
+    in Just (l, g, t)
 
 unsnoc :: Forest l -> Maybe (Forest l, l, Forest l)
-unsnoc _ = Nothing
+unsnoc (Forest v) 
+  | V.null v = Nothing
+  | otherwise =
+      let (Node l g) = V.last v
+          t = Forest $ V.init v
+      in Just (t, l, g)
 
 
 -- | Split a 'Tree' into it's root label and a 'Forest' of branches.
