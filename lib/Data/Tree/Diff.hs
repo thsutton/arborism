@@ -1,14 +1,15 @@
-{-# LANGUAGE RecordWildCards, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE RecordWildCards            #-}
 module Data.Tree.Diff where
 
-import Data.Vector (Vector)
-import qualified Data.Vector as V
-import Data.Bifunctor
-import Data.Monoid
-import Data.Map (Map)
-import qualified Data.Map as M
-import Control.Monad.State
-import Data.List as L
+import           Control.Monad.State
+import           Data.Bifunctor
+import           Data.List           as L
+import           Data.Map            (Map)
+import qualified Data.Map            as M
+import           Data.Monoid
+import           Data.Vector         (Vector)
+import qualified Data.Vector         as V
 
 import Data.Tree
 
@@ -29,10 +30,10 @@ instance Read Idx where
   readsPrec i = map (first Idx) . filter (\(a,r) -> a >= 0) . readsPrec i
 
 data FNode l = N
-  { label :: l
-  , index :: Idx
+  { label         :: l
+  , index         :: Idx
   , leftMostChild :: Idx
-  , parent :: Idx
+  , parent        :: Idx
   }
   deriving (Show)
 
@@ -185,7 +186,7 @@ treeDist in1 in2 =
         let key = (tree t1 i1, tree t2 j1)
         in case M.lookup key prev of
              Nothing -> error $ "Cannot find previous subtree: " <> show key
-             Just v -> v -- error $ "Found " <> show v <> " for subtree: " <> show key
+             Just v  -> v -- error $ "Found " <> show v <> " for subtree: " <> show key
       forests i j prev subproblem@((li, i1), (lj, j1), cs)
         | i1 == -1 && j1 == -1 = M.insert ((li, -1), (lj, -1)) 0 prev
         | L.null cs = error $ "Expected to compute minimum but not children given: " <> show subproblem

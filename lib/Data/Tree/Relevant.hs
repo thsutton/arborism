@@ -6,18 +6,18 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Data.Tree.Relevant where
 
-import Control.Applicative
-import Data.Set (Set)
-import Data.Vector (Vector)
-import qualified Data.Vector as V
-import qualified Data.Set as Set
-import Data.Monoid
+import           Control.Applicative
+import           Data.Monoid
+import           Data.Set            (Set)
+import qualified Data.Set            as Set
+import           Data.Vector         (Vector)
+import qualified Data.Vector         as V
 
-import Debug.Trace
+import           Debug.Trace
 
-import Prelude hiding (null)
+import           Prelude             hiding (null)
 
-import Data.Tree
+import           Data.Tree
 
 -- * Decomposition strategies
 

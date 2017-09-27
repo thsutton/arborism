@@ -1,13 +1,14 @@
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 -- | A simple rose tree with ordered siblings.
 module Data.Tree where
 
 import           Control.Arrow (first, second)
 import           Data.Functor
+import           Data.List
 import           Data.Monoid
 import           Data.Vector   (Vector)
 import qualified Data.Vector   as V
-import           Data.List
 
 -- $setup
 --
@@ -39,14 +40,10 @@ instance Show l => Show (Tree l) where
 -- | A 'Forest' is an ordered collection of 'Tree's.
 newtype Forest sigma = Forest
   { forestTrees :: Vector (Tree sigma) }
-  deriving (Ord, Eq)
+  deriving (Ord, Eq, Monoid)
 
 instance Show l => Show (Forest l) where
   show (Forest children) = "(" <> (intercalate " " . map show . V.toList $ children) <> ")"
-
-instance Monoid (Forest sigma) where
-  mempty = Forest mempty
-  (Forest t1) `mappend` (Forest t2) = Forest (t1 `mappend` t2)
 
 -- * Construction
 
@@ -101,7 +98,7 @@ uncons (Forest v)
     in Just (l, g, t)
 
 unsnoc :: Forest l -> Maybe (Forest l, l, Forest l)
-unsnoc (Forest v) 
+unsnoc (Forest v)
   | V.null v = Nothing
   | otherwise =
       let (Node l g) = V.last v
