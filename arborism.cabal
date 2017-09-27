@@ -25,6 +25,7 @@ library
                      , Data.Tree
                      , Data.Cost
                      , Data.Tree.Diff
+                     , Data.Tree.Relevant
   build-depends:       base >= 4.7 && < 5
                      , vector
                      , containers

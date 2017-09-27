@@ -8,7 +8,7 @@ import Data.Monoid
 import Data.Map (Map)
 import qualified Data.Map as M
 import Control.Monad.State
-import Data.List
+import Data.List as L
 
 import Data.Tree
 
@@ -188,7 +188,7 @@ treeDist in1 in2 =
              Just v -> v -- error $ "Found " <> show v <> " for subtree: " <> show key
       forests i j prev subproblem@((li, i1), (lj, j1), cs)
         | i1 == -1 && j1 == -1 = M.insert ((li, -1), (lj, -1)) 0 prev
-        | null cs = error $ "Expected to compute minimum but not children given: " <> show subproblem
+        | L.null cs = error $ "Expected to compute minimum but not children given: " <> show subproblem
         | otherwise =
             let f (from, to, c') =
                   case M.lookup (from, to) prev of

@@ -36,7 +36,6 @@ instance Show l => Show (Tree l) where
           words = atom : rest
       in "(" <> (intercalate " " words) <> ")"
 
-
 -- | A 'Forest' is an ordered collection of 'Tree's.
 newtype Forest sigma = Forest
   { forestTrees :: Vector (Tree sigma) }
@@ -72,8 +71,8 @@ graftRight (Forest ts) t = Forest (ts `V.snoc` t)
 -- * Predicates and accessors
 
 -- | Check that a 'Forest' is empty.
-empty :: Forest sigma -> Bool
-empty (Forest trees) = V.null trees
+null :: Forest sigma -> Bool
+null (Forest trees) = V.null trees
 
 -- | The number of children a tree has.
 degree :: Tree sigma -> Int
@@ -88,6 +87,13 @@ forestNodes :: Forest sigma -> Int
 forestNodes (Forest ts) = V.foldl (\c t -> c + treeNodes t) 0 ts
 
 -- * Destruction
+
+uncons :: Forest l -> Maybe (l, Forest l, Forest l)
+uncons _ = Nothing
+
+unsnoc :: Forest l -> Maybe (Forest l, l, Forest l)
+unsnoc _ = Nothing
+
 
 -- | Split a 'Tree' into it's root label and a 'Forest' of branches.
 --
