@@ -7,6 +7,7 @@ import           Data.Functor
 import           Data.Monoid
 import           Data.Vector   (Vector)
 import qualified Data.Vector   as V
+import           Data.List
 
 -- $setup
 --
@@ -26,7 +27,15 @@ data Tree sigma = Node
   }
   deriving (Ord, Eq)
 
-deriving instance (Show sigma) => Show (Tree sigma)
+instance Show l => Show (Tree l) where
+  show (Node l (Forest v))
+    | V.null v = show l
+    | otherwise =
+      let atom = show l
+          rest = map show $ V.toList v
+          words = atom : rest
+      in "(" <> (intercalate " " words) <> ")"
+
 
 -- | A 'Forest' is an ordered collection of 'Tree's.
 newtype Forest sigma = Forest

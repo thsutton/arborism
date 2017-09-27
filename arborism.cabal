@@ -28,6 +28,7 @@ library
   build-depends:       base >= 4.7 && < 5
                      , vector
                      , containers
+                     , mtl
 
 executable arborism
   hs-source-dirs:      src
