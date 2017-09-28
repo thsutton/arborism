@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE RecordWildCards            #-}
 module Data.Tree.Diff where
 
 import           Control.Monad.State
@@ -7,6 +6,7 @@ import           Data.Bifunctor
 import           Data.List           as L
 import           Data.Map            (Map)
 import qualified Data.Map            as M
+import           Data.Maybe
 import           Data.Monoid
 import           Data.Vector         (Vector)
 import qualified Data.Vector         as V
@@ -49,22 +49,22 @@ root (F v) = V.last v
 
 -- | Find the span of the sub-tree rooted at a node.
 tree :: Flattened l -> Idx -> (Idx, Idx)
-tree t id = ((leftMostChild $ t `node` id), id)
+tree t id = (leftMostChild $ t `node` id, id)
 
 -- | We'll flatten the tree in a left-right post-order traversal.
 flattenTree :: Tree l -> Flattened l
 flattenTree tree =
-  let flat = flip evalState 0 . (fmap fst) . go $ tree
+  let flat = flip evalState 0 . fmap fst . go $ tree
       root = V.last flat
       root' = root{parent = index root}
-  in F $ (V.init flat) `V.snoc` root'
+  in F $ V.init flat `V.snoc` root'
   where
     go :: Tree l -> State Idx (Vector (FNode l), Idx)
     go (Node l (Forest cs)) = do
       cs' <- V.mapM go cs
       next <- state (\next -> (next, next + 1))
       let left = maybe next snd $ cs' V.!? 0
-      return $ ((V.concatMap (fixup next) cs') `V.snoc` (N l next left (-1)), left)
+      return (V.concatMap (fixup next) cs' `V.snoc` N l next left (-1), left)
     -- I should probably figure out how to tie this knot correctly.
     fixup :: Idx -> (Vector (FNode l), Idx) -> Vector (FNode l)
     fixup p = V.map (\n -> if parent n < 0 then n{parent = p} else n) . fst
@@ -75,9 +75,9 @@ flattenTree tree =
 -- will be wrong, 3) screw you guys, I'm going home.
 node :: Flattened l -> Idx -> FNode l
 node (F v) (Idx n) =
-  case v V.!? n of
-    Nothing -> error $ "Cannot get node " <> show n <> " from tree with " <> show (V.length v) <> " nodes"
-    Just v -> v
+  fromMaybe
+    (error $ "Cannot get node " <> show n <> " from tree with " <> show (V.length v) <> " nodes")
+    (v V.!? n)
 
 -- | The key to this algorithm (and the newer better algorithms in the
 -- same class) is in identifying the subset of sub-trees in that we
@@ -98,7 +98,7 @@ keyRoots tree@(F v) =
     isKey :: FNode l -> Bool
     isKey k =
       let lk = leftMostChild k
-          lpk = leftMostChild (tree `node` (parent k))
+          lpk = leftMostChild (tree `node` parent k)
       in lk /= lpk
 
 -- * Tree Distance
@@ -184,9 +184,8 @@ treeDist in1 in2 =
 
       treedist prev i1 j1 =
         let key = (tree t1 i1, tree t2 j1)
-        in case M.lookup key prev of
-             Nothing -> error $ "Cannot find previous subtree: " <> show key
-             Just v  -> v -- error $ "Found " <> show v <> " for subtree: " <> show key
+        in fromMaybe (error $ "Cannot find previous subtree: " <> show key)
+           (M.lookup key prev)
       forests i j prev subproblem@((li, i1), (lj, j1), cs)
         | i1 == -1 && j1 == -1 = M.insert ((li, -1), (lj, -1)) 0 prev
         | L.null cs = error $ "Expected to compute minimum but not children given: " <> show subproblem

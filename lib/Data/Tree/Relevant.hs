@@ -3,7 +3,6 @@
 -- Inspired by S. Dulucq and H. Touzet. /Analysis of tree edit
 -- distance algorithms/.
 
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Data.Tree.Relevant where
 
 import           Control.Applicative

@@ -1,5 +1,4 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE StandaloneDeriving         #-}
 -- | A simple rose tree with ordered siblings.
 module Data.Tree where
 
@@ -35,7 +34,7 @@ instance Show l => Show (Tree l) where
       let atom = show l
           rest = map show $ V.toList v
           words = atom : rest
-      in "(" <> (intercalate " " words) <> ")"
+      in "(" <> unwords words <> ")"
 
 -- | A 'Forest' is an ordered collection of 'Tree's.
 newtype Forest sigma = Forest
@@ -43,7 +42,7 @@ newtype Forest sigma = Forest
   deriving (Ord, Eq, Monoid)
 
 instance Show l => Show (Forest l) where
-  show (Forest children) = "(" <> (intercalate " " . map show . V.toList $ children) <> ")"
+  show (Forest children) = "(" <> (unwords . map show . V.toList $ children) <> ")"
 
 -- * Construction
 
@@ -137,12 +136,12 @@ rightMost (Forest f)
 --
 -- prop> \f t -> leftRoot (graftLeft t f) == Just (splitTree t, f)
 leftRoot :: Forest sigma -> Maybe ((sigma, Forest sigma), Forest sigma)
-leftRoot f = (first splitTree) <$> leftMost f
+leftRoot f = first splitTree <$> leftMost f
 
 -- | Decompose a forest at the root of the right-most tree.
 --
 -- Returns the left trees, right-most tree's root label and branches.
 -- prop> \f t -> rightRoot (graftRight f t) == Just (f, splitTree t)
 rightRoot :: Forest sigma -> Maybe (Forest sigma, (sigma, Forest sigma))
-rightRoot f = (second splitTree) <$> rightMost f
+rightRoot f = second splitTree <$> rightMost f
 
