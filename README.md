@@ -19,14 +19,5 @@ in the following papers.
 > Algorithm for Tree Edit Distance. *ACM Transactions on Algorithms*,
 > Vol. 6, No. 1. https://doi.org/10.1145/1644015.1644017
 
-The decomposition strategy used in a dynamic programming algorithm
-determines how a particular problem instance will be broken up into
-sub-problems. Some dynamic programming problems only admit a single
-(up to symmetry) decomposition strategy (string edit distance,
-matrix-chain multiplication, etc.) but others may have more
-interesting structure. In the tree edit difference problem different
-decomposition strategies can result in quite different tableaux
-structures and, hence, asymptotic behaviour.
-
 [1]: https://travis-ci.org/thsutton/arborism.svg?branch=master
 [2]: https://travis-ci.org/thsutton/arborism

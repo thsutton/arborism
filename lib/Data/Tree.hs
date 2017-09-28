@@ -36,13 +36,19 @@ instance Show l => Show (Tree l) where
           words = atom : rest
       in "(" <> unwords words <> ")"
 
+treeSize :: Tree l -> Int
+treeSize (Node _ f) = 1 + forestSize f
+
 -- | A 'Forest' is an ordered collection of 'Tree's.
 newtype Forest sigma = Forest
   { forestTrees :: Vector (Tree sigma) }
   deriving (Ord, Eq, Monoid)
 
 instance Show l => Show (Forest l) where
-  show (Forest children) = "(" <> (unwords . map show . V.toList $ children) <> ")"
+  show (Forest children) = "[" <> (unwords . map show . V.toList $ children) <> "]"
+
+forestSize :: Forest l -> Int
+forestSize (Forest ts) = V.foldl' (\a t -> a + treeSize t) 0 ts
 
 -- * Construction
 
