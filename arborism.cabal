@@ -1,7 +1,12 @@
 name:                arborism
 version:             0.1.0.0
-synopsis:            Simple project template from stack
-description:         Please see README.md
+synopsis:            Tree edit distance
+description:
+  .
+  This is a small library of algorithms related to the tree edit
+  distance problem. It includes some tools for enumerating and
+  visualising these problems, as well as merely solving them.
+  .
 homepage:            https://github.com/thsutton/arborism#readme
 license:             BSD3
 license-file:        LICENSE
