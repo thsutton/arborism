@@ -152,14 +152,16 @@ treeDist in1 in2 =
 
             zeros   = [ ((li, -1), (lj, -1), []) ]
             deletes = [ ((li, m), (lj, -1), [
-                            dep ((li, m-1), (lj, -1), 1)
+                            dep ((li, m-1), (lj, -1), cost (Del v1))
                         ])
                       | m <- [ li .. i ]
+                      , let v1 = label (t1 `node` m)
                       ]
             inserts = [ ((li, -1), (lj, n), [
-                            dep ((li, -1), (lj, n-1), 1)
+                            dep ((li, -1), (lj, n-1), cost (Ins v2))
                         ])
                       | n <- [ lj .. j ]
+                      , let v2 = label (t2 `node` n)
                       ]
             changes = [ ((li, m), (lj, n), if (li1 == li) && (lj1 == lj)
                           then [
