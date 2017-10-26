@@ -45,8 +45,8 @@ relevantForests :: (Show l, Ord l) => Strategy l -> Forest l -> Forest l -> Set 
 relevantForests strat f1 f2 = go f1 f2 mempty
   where
     msg c (f1, f2) fs =
-      let p = (hash $ (f1, f2)) <> " -> "
-      in unlines . map (\c -> p <> (hash c)) $ fs
+      let p = hash (f1, f2) <> " -> "
+      in unlines . map (\c -> p <> hash c) $ fs
     go f1 f2 done
       | null f1 && null f2 = done
       | (f1, f2) `Set.member` done = done

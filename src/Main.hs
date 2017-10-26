@@ -20,7 +20,7 @@ main = do
   let f1 = singletonForest t1
   let f2 = singletonForest t2
   let fs = relevantForests left f1 f2
-  putStrLn (show $ f1 <> f2)
+  print (f1 <> f2)
   putStrLn (dot $ f1 <> f2)
   putStrLn ""
   let forests = sortBy (flip compare `on` sz) $ Set.toList fs
