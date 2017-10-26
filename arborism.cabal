@@ -35,6 +35,8 @@ library
                      , vector
                      , containers
                      , mtl
+                     , pureMD5
+                     , bytestring
 
 executable arborism
   hs-source-dirs:      src

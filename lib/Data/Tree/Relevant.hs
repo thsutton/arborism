@@ -6,17 +6,20 @@
 module Data.Tree.Relevant where
 
 import           Control.Applicative
+import           Data.ByteString.Lazy       (ByteString)
+import qualified Data.ByteString.Lazy.Char8 as BS
+import qualified Data.Digest.Pure.MD5       as MD5
 import           Data.Monoid
-import           Data.Set            (Set)
-import qualified Data.Set            as Set
-import           Data.Vector         (Vector)
-import qualified Data.Vector         as V
+import           Data.Set                   (Set)
+import qualified Data.Set                   as Set
+import           Data.Vector                (Vector)
+import qualified Data.Vector                as V
 
-import           Debug.Trace
+import Debug.Trace
 
-import           Prelude             hiding (null)
+import Prelude hiding (null)
 
-import           Data.Tree
+import Data.Tree
 
 -- * Decomposition strategies
 
@@ -34,10 +37,16 @@ right _ _ = R
 
 -- * Relevant forests
 
+hash :: Show l => l -> String
+hash = show . MD5.md5 . BS.pack . show
+
 -- | Using a strategy, decompose a pair of forests.
-relevantForests :: Ord l => Strategy l -> Forest l -> Forest l -> Set (Forest l, Forest l)
+relevantForests :: (Show l, Ord l) => Strategy l -> Forest l -> Forest l -> Set (Forest l, Forest l)
 relevantForests strat f1 f2 = go f1 f2 mempty
   where
+    msg c (f1, f2) fs =
+      let p = (hash $ (f1, f2)) <> " -> "
+      in unlines . map (\c -> p <> (hash c)) $ fs
     go f1 f2 done
       | null f1 && null f2 = done
       | (f1, f2) `Set.member` done = done
@@ -46,23 +55,23 @@ relevantForests strat f1 f2 = go f1 f2 mempty
         in case strat f1 f2 of
           L -> case (uncons f1, uncons f2) of
             (Just (l, g, t), Nothing) ->
-              trace "left-left" $
+              trace (msg "left-left" (f1, f2) [(g <> t, f2)]) $
                 go (g <> t) f2 done'
             (Nothing, Just (l', g', t')) ->
-              trace "left-right" $
+              trace (msg "left-right" (f1, f2) [(f1, g' <> t')]) $
                 go f1 (g' <> t') done'
             (Just (l, g, t), Just (l', g', t')) ->
-              trace "left-both" $
+              trace (msg "left-both" (f1, f2) [(g <> t, f2), (f1, g' <> t'), (n l g, n l' g'), (t ,t')]) $
                 go (g <> t) f2 (go f1 (g' <> t') (go (n l g) (n l' g') (go t t' done')))
           R -> case (unsnoc f1, unsnoc f2) of
             (Just (t, l, g), Nothing) ->
-              trace "right-left" $
+              trace (msg "right-left" (f1, f2) [(t <> g, f2)]) $
                 go (t <> g) f2 done'
             (Nothing, Just (t', l', g')) ->
-              trace "right-right" $
+              trace (msg "right-right" (f1, f2) [(f1, t' <> g')]) $
                 go f1 (t' <> g') done'
             (Just (t, l, g), Just (t', l', g')) ->
-              trace "right-both" $
+              trace (msg "right-both" (f1, f2) [(t <> g, f2), (f1, t' <> g'), (n l g, n l' g'), (t, t')]) $
                 go (t <> g) f2 (go f1 (t' <> g') (go (n l g) (n l' g') (go t t' done')))
     n l c = Forest $ V.singleton (Node l c)
 

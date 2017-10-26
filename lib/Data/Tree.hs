@@ -74,6 +74,51 @@ graftLeft t (Forest ts) = Forest (t `V.cons` ts)
 graftRight :: Forest sigma -> Tree sigma -> Forest sigma
 graftRight (Forest ts) t = Forest (ts `V.snoc` t)
 
+-- * Maps
+
+type Pos = [Int]
+
+mapForest :: (l -> l') -> Forest l -> Forest l'
+mapForest f = mapForestPos (\_ l -> f l)
+
+mapForestPos :: (Pos -> l -> l') -> Forest l -> Forest l'
+mapForestPos f = goF []
+  where
+    goT path (Node l fs) = Node (f path l) (goF path fs)
+    goF path (Forest ts) = Forest (V.imap (\ix a -> goT (path <> [ix]) a) ts)
+
+foldLabel :: acc -> (acc -> l -> acc) -> Forest l -> acc
+foldLabel acc f = goF acc
+  where
+    goT acc (Node l fs) = goF (f acc l) fs
+    goF acc (Forest ts) = V.foldr (flip goT) acc ts
+
+foldEdges :: acc -> (acc -> l -> l -> acc) -> Forest l -> acc
+foldEdges acc f = goF acc
+  where
+    goT acc (Node p fs@(Forest cs)) = goF (V.foldr (\(Node c _) a -> f a p c) acc cs) fs
+    goF acc (Forest ts) = V.foldl goT acc ts
+
+-- | Visit each node and edge.
+--
+-- We visit, in order: the incoming edge, the node, it's outgoing edges.
+foldTree :: acc -> (acc -> l -> acc) -> (acc -> l -> l -> acc) -> Forest l -> acc
+foldTree acc node edge = goF acc
+  where
+    goT acc (Node p fs) = acc
+    goF acc (Forest ts) = acc
+
+dot :: Show l => Forest l -> String
+dot f =
+  let fl = mapForestPos (\p l -> (show . intercalate "." . map show $ p, show $ show l)) f
+  in unlines $ [ "digraph {" ] <>
+               foldLabel [] (\acc (p, l) -> ("  " <> p <> "[label=" <> l <> "];") : acc ) fl <>
+               foldEdges [] (\acc (p, _) (c, _) -> ("  " <> p <> " -> " <> c <> ";") : acc) fl <>
+               [ "}" ]
+
+showS :: Forest l -> String
+showS = show . mapForestPos (\p _ -> intercalate "." . map show $ p)
+
 -- * Predicates and accessors
 
 -- | Check that a 'Forest' is empty.
