@@ -140,10 +140,10 @@ treeDist in1 in2 =
       -- pair of key roots. We can calculate these descriptions easily
       -- but we'll need to normalise them to have a single
       -- representation of the "empty" span.
-      dep ((li, i), (lj, j), c) =
-        let i' = if i < li then -1 else i
-            j' = if j < lj then -1 else j
-        in ((li, i'), (lj, j'), c)
+      dep (l@(li, i), r@(lj, j), c) =
+        let l' = if i < li then (li, -1) else l
+            r' = if j < lj then (lj, -1) else r
+        in (l', r', c)
 
       -- Solve a forest vs forest sub-problem.
       trees prev (i, j) =
@@ -163,22 +163,25 @@ treeDist in1 in2 =
                       | n <- [ lj .. j ]
                       , let v2 = label (t2 `node` n)
                       ]
-            changes = [ ((li, m), (lj, n), if (li1 == li) && (lj1 == lj)
+            changes = [ ((li, m), (lj, n),
+                          if leftIsAWholeTree && rightIsAWholeTree
                           then [
-                            dep ((li, m-1), (lj, n), cost (Del v1)),
-                            dep ((li, m), (lj, n-1), cost (Ins v2)),
+                            dep ((li, m-1), (lj, n  ), cost (Del v1)),
+                            dep ((li, m  ), (lj, n-1), cost (Ins v2)),
                             dep ((li, m-1), (lj, n-1), cost (Rep v1 v2))
                             ]
-                          else
-                            [
-                              dep ((li, m-1), (lj, n), cost (Del v1)),
-                              dep ((li, m), (lj, n-1), cost (Ins v2)),
-                              dep ((li, li1-1), (lj, lj1-1), treedist prev m n)
-                            ])
+                          else [
+                            dep ((li, m-1  ), (lj, n    ), cost (Del v1)),
+                            dep ((li, m    ), (lj, n-1  ), cost (Ins v2)),
+                            dep ((li, li1-1), (lj, lj1-1), treedist prev m n)
+                            ]
+                        )
                       | m <- [ li .. i ]
                       , n <- [ lj .. j ]
                       , let li1 = leftMostChild (t1 `node` m)
                             lj1 = leftMostChild (t2 `node` n)
+                            leftIsAWholeTree = li1 == li
+                            rightIsAWholeTree = lj1 == lj
                             v1 = label (t1 `node` m)
                             v2 = label (t2 `node` n)
                       ]
@@ -197,7 +200,6 @@ treeDist in1 in2 =
                     Just c -> c + c'
                     Nothing -> error $ "Missing subproblem: " <> show (from, to)
             in M.insert ((li, i1), (lj, j1)) (minimum $ map f cs) prev
-
 
       -- The forest vs forest sub-problems.
       ftabs = [ (r1, r2) | r1 <- kr1, r2 <- kr2 ]

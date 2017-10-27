@@ -15,7 +15,7 @@ instance Show Cost where
   show = show . fromCost
 
 instance Read Cost where
-  readsPrec i = map (first Cost) . filter (\(a,r) -> a >= 0) . readsPrec i
+  readsPrec i = fmap (first Cost) . filter (\(a,r) -> a >= 0) . readsPrec i
 
 instance Monoid Cost where
   mempty = Cost 0
